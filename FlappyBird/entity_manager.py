@@ -57,7 +57,6 @@ class EntityManager():
             return False
         for layer in self.entityList:
             for entity in layer:
-                print(entity.name)
                 if entity.id == mainEntity.id:
                     continue
                 
