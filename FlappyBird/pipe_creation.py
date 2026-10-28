@@ -7,13 +7,14 @@ from ScoreManager import ScoreManager
 
 #Handles creating pipes, adding score when passing pipes, and moving/adding new pipes to the right of the screen
 class PipeManager():
-    def __init__(self, newManager:EntityManager, scoreManager:ScoreManager, playerX=400):
+    def __init__(self, newManager:EntityManager, scoreManager:ScoreManager, pointSFX,playerX=400):
         self.entityManager = newManager
         self.scoreManager = scoreManager
+        self.pointSFX = pointSFX
         self.playerX = playerX
         self.pipeVelocity = 300
         self.pipeWidth = 150
-        self.pipeHeight = 4000
+        self.pipeHeight = GlobalInfo.screenHeight + 200
         self.distanceBetweenPipeSets = 300
         self.distanceBetweenPipeSets += self.pipeWidth
         self.spawnDelay = self.distanceBetweenPipeSets/self.pipeVelocity
@@ -38,6 +39,7 @@ class PipeManager():
             if pipeInfo[0].x <= self.playerX and  pipeInfo[2] == False:
                 pipeInfo[2] = True
                 self.scoreManager.IncreaseScore()
+                self.pointSFX.play()
         
     
     #Gets a random start y position for the pipes gap point
@@ -80,6 +82,10 @@ class PipeManager():
     def CreatePipe(self):        
         topPipe = ObjectEntety(name="Top Pipe", color="green", x=self.pipesStartX, width=self.pipeWidth, height=self.pipeHeight,xVel=-self.pipeVelocity)
         bottomPipe = ObjectEntety(name="Bottom Pipe", color="green", x=self.pipesStartX, width=self.pipeWidth, height=self.pipeHeight,xVel=-self.pipeVelocity)
+        
+        bottomPipe.SetFramesImages(["FlappyBird/Assets/sprites/pipe-green.png"])
+        topPipe.SetFramesImages(["FlappyBird/Assets/sprites/pipe-green.png"], flipVertical=True)
+        
         newInfo: tuple[ObjectEntety, ObjectEntety,bool] = [topPipe, bottomPipe, False]
         self.entityManager.AddEntity(topPipe)
         self.entityManager.AddEntity(bottomPipe)

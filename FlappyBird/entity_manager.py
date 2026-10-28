@@ -16,7 +16,10 @@ class EntityManager():
     def Update(self,screen):
         for entity in self.entityList:
             entity.Update()
-            pygame.draw.rect(screen, entity.color, entity.GetRect())
+            if len(entity.animationFrames) == 0:
+                pygame.draw.rect(screen, entity.color, entity.GetRect())
+            else:
+                screen.blit(entity.GetFrame(), entity.GetTopLeftConner())
        
     #Draws each entity onto the screen 
     def DrawEntities(self, screen):

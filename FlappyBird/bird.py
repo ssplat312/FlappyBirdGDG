@@ -5,14 +5,15 @@ from time import time
 #The bird is an extension of the object ententy that has gravity and specilized controls
 class Bird(ObjectEntety):
 
-    def __init__(self, name="", color="", x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colPercentage=1, maxYVel=10, maxFallSpeed=10, flapStrength=2, maxFlapTime=1, gravity=1):
-        super().__init__(name, color, x, y, imgLink, width, height, xVel, yVel, colPercentage)
+    def __init__(self, name="", color="", x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colPercentage=1,frames=[],aniSpeed=10, maxYVel=10, maxFallSpeed=10, flapStrength=2, maxFlapTime=1, gravity=1):
+        super().__init__(name, color, x, y, imgLink, width, height, xVel, yVel, colPercentage,frames,aniSpeed)
         self.gravity = gravity
         self.flapStrength = flapStrength
         self.maxYVelocity = maxYVel
         self.lastFlapTime = time()
         self.maxFlapTime = maxFlapTime
         self.maxFallSpeed = maxFallSpeed
+        self.minY =-150
         self.burnOffTime = time()
         self.maxBurnOffTime = .1
         self.justFlapped = False
@@ -27,7 +28,9 @@ class Bird(ObjectEntety):
             if(-tempYVel > self.maxFallSpeed):
                 tempYVel = -self.maxFallSpeed
             self.UpdateYVelocity(tempYVel)
-        
+        if self.y < self.minY:
+            self.y = self.minY
+            
         super().Update()
         
     #Sets a timer that makes it so it flies until a set time

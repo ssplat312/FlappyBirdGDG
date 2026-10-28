@@ -1,13 +1,15 @@
 from GlobalInfo import GlobalInfo
 from math import sqrt, pow
-
+from time import time
+import pygame
+from pathlib import Path
 #An entity holder for pygames object that contains it's name, color, position(center), dimensions, etc.
 #For future note if you wanted to reduce the collider size you would need to lerp between the objects x and y position and it's conner position
 class ObjectEntety():
     globalID = 0
     dt = 0
 
-    def __init__(self, name="", color="red", x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colliderPercentage=1):
+    def __init__(self, name="", color="red", x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colliderPercentage=1, frameLinks =[],animationSpeed=10):
         self.id = ObjectEntety.globalID
         ObjectEntety.globalID = ObjectEntety.globalID + 1
         self.name = name
@@ -15,11 +17,33 @@ class ObjectEntety():
         self.x = x  # X and Y are the top left positions
         self.y = y
         self.imgLink = imgLink
+        self.animationFrames = []
+        self.SetFramesImages(frameLinks)
+        self.animationSpeed = animationSpeed#By frame count
+        self.curFrame = 0
+        self.frameCount = 0
         self.width = width
         self.height = height
         self.isFlipped = False
         self.velocity = (xVel, yVel)
         self.colliderPercentage = colliderPercentage
+        
+        
+    def SetFramesImages(self, frameLinks, flipHorizontal=False, flipVertical=False):
+        self.animationFrames = []
+        for link in frameLinks:
+            filePath = Path(link)
+            
+            if(filePath.is_file() == False):
+                continue
+            
+            frame = pygame.image.load(link).convert_alpha()
+            
+            frame = pygame.transform.scale(frame, (self.width, self.height))
+            if flipHorizontal or flipVertical:
+                frame = pygame.transform.flip(frame, flipHorizontal, flipVertical)
+            self.animationFrames.append(frame)
+            
         
     #Determines if the entity is out of screen bounds
     def InScreenBoundries(self):
@@ -64,7 +88,26 @@ class ObjectEntety():
     def Update(self):
         self.x += (self.GetXVelocity() * self.dt)
         self.y -= (self.GetYVelocity() * self.dt)
+        if len(self.animationFrames) > 0:
+            self.UpdateFrame()
+        
+        
+    def UpdateFrame(self):
+        self.frameCount += 1
+        
+        if self.frameCount < self.animationSpeed:
+            return
+        
+        self.frameCount = 0
+        self.curFrame += 1
+        
+        if self.curFrame >= len(self.animationFrames):
+            self.curFrame = 0
     
+    
+    def GetFrame(self):
+        return self.animationFrames[self.curFrame]
+        
     
     #Updates the x velocity
     def UpdateXVelocity(self, newX):
