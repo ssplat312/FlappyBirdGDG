@@ -46,7 +46,7 @@ entityManager.AddEntity(bird)
 #Creates and adds the ground to the entity manager
 ground = ObjectEntety(name="Ground", color="green", x=screenWidth/2, y=screenHeight - 50, width=screenWidth, height=100)
 ground.SetFramesImages(["FlappyBird/Assets/sprites/base.png"])
-entityManager.AddEntity(ground)
+entityManager.AddEntity(ground, 1)
 
 #For Score text
 font = pygame.font.Font('freesansbold.ttf', 32)

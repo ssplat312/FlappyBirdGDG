@@ -46,7 +46,7 @@ class PipeManager():
     def GetRandomPipeY(self):
         screenHeight = GlobalInfo.screenHeight
         
-        return randint(self.distanceBetweenPipesTops, screenHeight - 100 - self.distanceBetweenPipesTops)
+        return randint(self.distanceBetweenPipesTops, screenHeight - 200 - self.distanceBetweenPipesTops)
         
     #Gets the futhest pipe(pipe with lowest x)
     def GetFarthestPipeIndex(self):
