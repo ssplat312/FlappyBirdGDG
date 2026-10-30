@@ -18,9 +18,9 @@ class EntityManager():
             for entity in layer:
                 entity.Update()
                 if len(entity.animationFrames) == 0:
-                    pygame.draw.rect(screen, entity.color, entity.GetRect())
+                    entity.Draw(screen)
                 else:
-                    screen.blit(entity.GetFrame(), entity.GetTopLeftConner())
+                    entity.DrarFrames(screen)
        
     #Draws each entity onto the screen 
     def DrawEntities(self, screen):

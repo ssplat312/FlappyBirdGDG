@@ -4,6 +4,7 @@ from GlobalInfo import GlobalInfo
 from time import time
 from random import randint
 from ScoreManager import ScoreManager
+from msgpack import fallback
 
 #Handles creating pipes, adding score when passing pipes, and moving/adding new pipes to the right of the screen
 class PipeManager():
@@ -24,6 +25,8 @@ class PipeManager():
         self.pipesInfo: list[tuple[ObjectEntety, ObjectEntety,bool]] = []  # [(topPipe, bottomPipe, midpoint, didPass)]
         self.pipeTime = time()
         
+        self.makePipes = True
+        
         #Prevents an extra pipe set from being made at the start
         self.CreatePipe()
         
@@ -33,6 +36,12 @@ class PipeManager():
         if self.NeedPipe():
             self.AddPipeAtEnd()
        
+    def StopPipes(self):
+        for pipeInfo in self.pipesInfo:
+            pipeInfo[0].UpdateXVelocity(0)
+            pipeInfo[1].UpdateXVelocity(0)
+        self.makePipes= False
+        
     #Checks if the pipe is to the left of the bird, and adds a point if it is
     def CheckMidpoints(self):   
         for pipeInfo in self.pipesInfo:
@@ -83,8 +92,8 @@ class PipeManager():
         topPipe = ObjectEntety(name="Top Pipe", color="green", x=self.pipesStartX, width=self.pipeWidth, height=self.pipeHeight,xVel=-self.pipeVelocity)
         bottomPipe = ObjectEntety(name="Bottom Pipe", color="green", x=self.pipesStartX, width=self.pipeWidth, height=self.pipeHeight,xVel=-self.pipeVelocity)
         
-        bottomPipe.SetFramesImages(["FlappyBird/Assets/sprites/pipe-green.png"])
-        topPipe.SetFramesImages(["FlappyBird/Assets/sprites/pipe-green.png"], flipVertical=True)
+        bottomPipe.SetFramesImages(["Assets/sprites/pipe-green.png"])
+        topPipe.SetFramesImages(["Assets/sprites/pipe-green.png"], flipVertical=True)
         
         newInfo: tuple[ObjectEntety, ObjectEntety,bool] = [topPipe, bottomPipe, False]
         self.entityManager.AddEntity(topPipe)
@@ -105,10 +114,12 @@ class PipeManager():
         usedInfo[1].y = midY + self.distanceBetweenPipesTops + self.pipeHeight/2
         
         usedInfo[2] = False
+        
     
     #Removes every pipe from the entity manager, and adds a new one for the start of the game
     def FullPipesReset(self):#Reset for a new game
         self.pipeTime = time()
+        self.makePipes = False
         for pipeInfo in self.pipesInfo:
             self.entityManager.RemoveEntity(pipeInfo[0])
             self.entityManager.RemoveEntity(pipeInfo[1])
@@ -116,8 +127,23 @@ class PipeManager():
         self.pipesInfo = []
         self.CreatePipe()
         self.pipeTime = time()
+        self.makePipes = True
+    
+    #Same as full reset but doesn't include creating a new pipe
+    def FullPipeResetWithoutCreation(self):
+        self.pipeTime = time()
+        self.makePipes = False
+        for pipeInfo in self.pipesInfo:
+            self.entityManager.RemoveEntity(pipeInfo[0])
+            self.entityManager.RemoveEntity(pipeInfo[1])
+            
+        self.pipesInfo = []
+        self.pipeTime = time()
+        self.makePipes = False
         
     #Checks if you need a new pipe
     def NeedPipe(self):
+        if self.makePipes == False:
+            return False
         return (time() - self.pipeTime) > self.spawnDelay
     

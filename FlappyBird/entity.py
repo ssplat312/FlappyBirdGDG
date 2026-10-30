@@ -27,7 +27,18 @@ class ObjectEntety():
         self.isFlipped = False
         self.velocity = (xVel, yVel)
         self.colliderPercentage = colliderPercentage
+        self.hidden = False
         
+    def Draw(self, screen):
+        if self.hidden:
+            return
+        pygame.draw.rect(screen, self.color, self.GetRect())
+
+    def DrarFrames(self, screen):
+        if self.hidden:
+            return 
+        screen.blit(self.GetFrame(), self.GetTopLeftConner())
+
         
     def SetFramesImages(self, frameLinks, flipHorizontal=False, flipVertical=False):
         self.animationFrames = []
@@ -146,6 +157,9 @@ class ObjectEntety():
     def GetDistance(self, other):
         return sqrt(pow(other.x - self.x, 2) + pow(other.y - self.y))
     
+    def InRnageOfPoint(self, point):
+        return abs(point[0] - self.x) <= self.width//2 and abs(point[1] - self.y) <= self.height//2
+     
     # Detects if it's touching another object(box collider)
     def IsColliding(self, other) -> bool:
         return self._CheckCollision(other) or other._CheckCollision(self)
@@ -162,9 +176,16 @@ class ObjectEntety():
             if conner[0] > minX and conner[0] < maxX and conner[1] > minY and conner[1] < maxY:
                 return  True
         return False
+    
+    def Hide(self):
+        self.hidden = True
+    
+    def Show(self):
+        self.hidden = False
 
 
 def LerpVec2(a, b, t:float):
     xPos = (b[0] - a[0]) * t + a[0]
     yPos = (b[1] - a[1]) * t + a[1]
     return (xPos, yPos)
+

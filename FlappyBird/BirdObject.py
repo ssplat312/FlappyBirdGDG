@@ -14,13 +14,20 @@ class Bird(ObjectEntety):
         self.maxFlapTime = maxFlapTime
         self.maxFallSpeed = maxFallSpeed
         self.minY =-150
+        self.deathY = 600
+        self.staticY = 350
         self.burnOffTime = time()
         self.maxBurnOffTime = .1
         self.justFlapped = False
         self.isDead = False
+        self.isStatic = False
         
     #Updates the y velocity of the bird and determines if it should fall or not
     def Update(self):
+        if self.isStatic:
+            self.y = self.staticY
+            self.UpdateYVelocity(0)
+            return
         
         if(time() - self.lastFlapTime) > self.maxFlapTime:
             tempYVel = self.GetYVelocity()
@@ -32,6 +39,9 @@ class Bird(ObjectEntety):
             self.y = self.minY
             
         super().Update()
+        
+        if self.isDead and self.y > self.deathY:
+            self.y = self.deathY
         
     #Sets a timer that makes it so it flies until a set time
     def Flap(self):
