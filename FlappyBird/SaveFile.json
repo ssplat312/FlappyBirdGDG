@@ -1,4 +1,5 @@
 {
-    "AccountName": "Test",
-    "AccountPassword": "Password"
+    "AccountName": "",
+    "AccountPassword": "",
+    "RememberAccount": true
 }

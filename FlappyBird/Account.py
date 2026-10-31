@@ -1,5 +1,1 @@
-import firebase_admin
-from firebase_admin import credentials
-
-cred = credentials.Certificate("path/to/serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
+#Will hold username and unhashed passwords, but will be hashed in database script
