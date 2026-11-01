@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 from argon2 import PasswordHasher
-
+import argon2
 
 class DatabaseHandler():
 
@@ -44,10 +44,16 @@ class DatabaseHandler():
             docDict = doc.to_dict()
             hashedPassword = docDict["Password"]
             print(hashedPassword)
-            if self.ph.verify(hashedPassword, password):
-                docDict["id"] = doc.id
-                docDict["Password"] = password
-                return docDict
+            try:
+                if self.ph.verify(hashedPassword, password):
+                    docDict["id"] = doc.id
+                    docDict["Password"] = password
+                    return docDict
+            except argon2.exceptions.VerifyMismatchError:
+                print("Wrong password format")
+                return None
+            except:
+                return None
                     
         return None
         
@@ -70,7 +76,7 @@ class DatabaseHandler():
     def IsValidInformation(self, user:str, password:str):
         user = user.strip()
         password = password.strip()
-        if len(user) == 0 or password == 0:
+        if len(user) == 0 or len(password) == 0:
             print("Invalid length")
             return False
         

@@ -155,7 +155,7 @@ class ObjectEntety():
         
     #Gets the distance between 2 objects
     def GetDistance(self, other):
-        return sqrt(pow(other.x - self.x, 2) + pow(other.y - self.y))
+        return sqrt(pow(other.x - self.x, 2) + pow(other.y - self.y,2))
     
     def InRnageOfPoint(self, point):
         return abs(point[0] - self.x) <= self.width//2 and abs(point[1] - self.y) <= self.height//2

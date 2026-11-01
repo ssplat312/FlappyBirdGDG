@@ -7,6 +7,8 @@ class GlobalInfo():
     pressedKey = False
     curKey = None
     curUnicode = None
+    server = "127.0.0.1"
+    port = 4000    
     
     def ResetTempInfo(self):
         GlobalInfo.mouseClick = False

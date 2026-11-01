@@ -24,9 +24,18 @@ class EntityManager():
        
     #Draws each entity onto the screen 
     def DrawEntities(self, screen):
-        for entity in self.entityList:
-            pygame.draw.rect(screen, entity.color, entity.GetRect())
-        
+        for layer in self.entityList:
+            for entity in layer:
+                if len(entity.animationFrames) == 0:
+                    entity.Draw(screen)
+                else:
+                    entity.DrarFrames(screen)
+                    
+                    
+    def UpdateNoDraw(self):
+        for layer in self.entityList:
+            for entity in layer:
+                entity.Update()
     
     #Adds an entity if not in the list
     def AddEntity(self, newEntity:ObjectEntety, layer=0):
@@ -46,7 +55,7 @@ class EntityManager():
     def RemoveEntity(self, entity):
         entityIndex = self.GetEntityIndex(entity)
         
-        if entityIndex == -1:
+        if entityIndex[0] == -1 or entityIndex[1] == -1:
             return
         
         self.entityList[entityIndex[0]].pop(entityIndex[1])

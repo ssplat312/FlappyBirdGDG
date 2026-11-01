@@ -30,6 +30,19 @@ class PipeManager():
         #Prevents an extra pipe set from being made at the start
         self.CreatePipe()
         
+    def GetPipesPacketInfo(self):
+        info = []
+        
+        for pipeInfo in self.pipesInfo:
+            topRect = pipeInfo[0].GetRect()
+            bottomRect = pipeInfo[1].GetRect()
+            
+            info.append((topRect[0], topRect[1], topRect[2], topRect[3], True))
+            info.append((bottomRect[0], bottomRect[1], bottomRect[2], bottomRect[3], False))
+            
+        return info
+
+            
     #Calls the midpoint checker and adds a pipe if needed
     def Update(self):
         self.CheckMidpoints()

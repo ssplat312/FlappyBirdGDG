@@ -5,7 +5,7 @@ from time import time
 #The bird is an extension of the object ententy that has gravity and specilized controls
 class Bird(ObjectEntety):
 
-    def __init__(self, name="", color="", x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colPercentage=1,frames=[],aniSpeed=10, maxYVel=10, maxFallSpeed=10, flapStrength=2, maxFlapTime=1, gravity=1):
+    def __init__(self, name="", username="",color=(0,0,0), x=0, y=0, imgLink="", width=1, height=1, xVel=0, yVel=0, colPercentage=1,frames=[],aniSpeed=10, maxYVel=10, maxFallSpeed=10, flapStrength=2, maxFlapTime=1, gravity=1):
         super().__init__(name, color, x, y, imgLink, width, height, xVel, yVel, colPercentage,frames,aniSpeed)
         self.gravity = gravity
         self.flapStrength = flapStrength
@@ -21,12 +21,14 @@ class Bird(ObjectEntety):
         self.justFlapped = False
         self.isDead = False
         self.isStatic = False
+        self.userName = username
         
     #Updates the y velocity of the bird and determines if it should fall or not
     def Update(self):
         if self.isStatic:
             self.y = self.staticY
             self.UpdateYVelocity(0)
+            super().Update()
             return
         
         if(time() - self.lastFlapTime) > self.maxFlapTime:
