@@ -90,6 +90,10 @@ def threaded_client(conn, packetNum:int):
             else:
                 missedCount[packetNum] = 0
                 packets[packetNum] = Packet.ConvertFromJSON(data)
+                print(packets[packetNum].dissconnect)
+                if packets[packetNum].dissconnect:
+                    print("Client Leaving")
+                    break
                 reply = GetOtherClients(packetNum)
                 replyDict =  [packet.ConvertToJSON() for packet in reply]
                 print("Received: ", data)

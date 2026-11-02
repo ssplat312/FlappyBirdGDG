@@ -177,7 +177,7 @@ def GetBirdFrames(birdColor:int):
 
     return frames
 
-def DrawOtherBird(x:int, y:int,birdColor:int, frameNumber:int, otherUsername:str):
+def DrawOtherBird(x:int, y:int,birdColor:int, frameNumber:int, otherUsername:str,otherRank:int):
     global screen
     global bird
     global font
@@ -193,7 +193,12 @@ def DrawOtherBird(x:int, y:int,birdColor:int, frameNumber:int, otherUsername:str
     frame = pygame.transform.scale(frame, (bird.width, bird.height))
     screen.blit(frame, (x,y))
 
-    userNameText = font.render(otherUsername, True, (255,255,255))
+    usernameTextInput = otherUsername
+    
+    if inMultiplayer:
+        usernameTextInput = f"{otherUsername} - {otherRank}"
+    
+    userNameText = font.render(usernameTextInput, True, (255,255,255))
     userNameText.set_alpha(127)
     namePos = (x,y)
     namePos = (int(namePos[0] ), int(namePos[1]) + 50)
@@ -214,13 +219,91 @@ def DrawPipe(x,y,width,height,isTop):
     frame = pygame.transform.flip(frame, False, isTop)
     screen.blit(frame, (x,y))
 
+def GetRankFromPackets(packetList:list[Packet]):
+    global scoreManager
+    global packet
+    curRanking = packet.playerCount
+    
+    for otherPacket in packetList:
+        if otherPacket is None:
+            continue
+        
+        if otherPacket.birdScore < scoreManager.score:
+            curRanking -= 1
+        elif otherPacket.birdScore == scoreManager.score and otherPacket.isDead:
+            curRanking -= 1
+            
+    return curRanking
 
-def DrawPacket(curPacket:Packet):
+def GetOtherRankFromPackets(mainPacket:Packet,packetList:list[Packet]):
+    global scoreManager
+    global packet
+    global bird
+    curRanking = packet.playerCount
+    
+    if scoreManager.score < mainPacket.birdScore:
+        curRank -= 1
+    elif scoreManager.score == mainPacket.birdScore and bird.isDead:
+        curRanking -= 1
+                
+    
+    for otherPacket in packetList:
+        if otherPacket is None:
+            continue
+        if otherPacket.username == mainPacket.username:
+            continue
+        
+        if otherPacket.birdScore < mainPacket.birdScore:
+            curRanking -= 1
+        elif otherPacket.birdScore == mainPacket.birdScore and otherPacket.isDead:
+            curRanking -= 1
+            
+    return curRanking
+
+#Checks if atleast 2 people are alive
+def CanResetMultiplayerGame(packetList:list[Packet]):    
+    global bird
+    aliveCount = 0
+    if bird.isDead == False:
+        aliveCount += 1
+        
+    if isReady == False:
+        return True
+    
+    
+    for otherPacket in packetList:
+        if otherPacket is None:
+            continue
+        
+        if otherPacket.isDead == False:
+            aliveCount += 1
+            
+        if otherPacket.isReady == False:
+            return True
+        
+    if aliveCount < 2:
+        return True
+    
+    return False
+    
+    
+
+def DrawPacket(curPacket:Packet, rank):
     curPacket.PrintInfo()
-    DrawOtherBird(curPacket.birdPos[0], curPacket.birdPos[1], curPacket.birdColor, curPacket.birdFrame, curPacket.username)
+    DrawOtherBird(curPacket.birdPos[0], curPacket.birdPos[1], curPacket.birdColor, curPacket.birdFrame, curPacket.username, rank)
 
 def DrawPacketFullInfo(curPacket:Packet):
     pass
+
+def MutiplayerToggle():
+    global network
+    global inMultiplayer
+    if inMultiplayer:
+        inMultiplayer = False
+        network.DisconnectNetwork()
+    else:
+        inMultiplayer = True
+        network.SetUpNetwork()
 
 def HandleMultiplayer():
     global network
@@ -233,24 +316,34 @@ def HandleMultiplayer():
     global pipeFrame 
     global isReady
     global GameState
-    
+    global curRank
     
     pipeFrame += 1
     pipeInfos = []
     if pipeFrame >= 5:
         pipeInfos = pipeManager.GetPipesPacketInfo()
         pipeFrame = 0
-    packet.SetInfo(birdColor,bird.curFrame,bird.GetTopLeftConner(),pipeInfos,scoreManager.score, username,packet.playerCount, packet.readyCount,isReady)
+    packet.SetInfo(birdColor,bird.curFrame,bird.GetTopLeftConner(),bird.isDead,pipeInfos,scoreManager.score, username,packet.playerCount, packet.readyCount,isReady)
     otherPackets = network.send(packet)
     if otherPackets is None:
         return
 
     #When showing the pipe info make it empty and then update it every couple of frames
     for otherPacket in otherPackets:
-        DrawPacket(otherPacket)
+        rank = GetOtherRankFromPackets(otherPacket, otherPackets)
+        DrawPacket(otherPacket, rank)
     
+    canReset = CanResetMultiplayerGame(otherPackets)
+            
     if GameState != 0:
+        curRank = GetRankFromPackets(otherPackets)
+        if canReset:
+            SetStartScreen()
         return
+    
+
+        
+        
     everyoneReady = isReady
     
     if everyoneReady:
@@ -267,6 +360,7 @@ def HandleMultiplayer():
 screenWidth = GlobalInfo.screenWidth
 screenHeight = GlobalInfo.screenHeight
 GameState = 1  # 0 is start, 1 is game playing, 2 is death, for the ui
+curRank = 0
 pygame.init()
 pygame.mixer.init()
 
@@ -289,7 +383,7 @@ running = True
 deathScreenShown = False
 startScreenShown = False
 mouseClick = False
-inMultiplayer = True
+inMultiplayer = False
 isReady = False
 
 # managers setup
@@ -329,9 +423,11 @@ startUI: list[ObjectEntety] = [Button(StartGame, text="Start", name="StartButton
 yellowBirdButton = Button(partial(SetBirdColor, 0),text="",normalColor=(255,255,0), clickColor=(255,255,0),hoverColor=(255,255,0),name="YellowBird", x=100, y=screenHeight*.4,width=100, height=100)
 blueBirdButton = Button(partial(SetBirdColor, 1), text="",color=(0,0,255),clickColor=(0,0,255),hoverColor=(0,0,255), name="BlueBird", x=100, y=screenHeight*.5,width=100, height=100)
 redBirdButton = Button(partial(SetBirdColor, 2), text="",color=(255,0,0),clickColor=(255,0,0),hoverColor=(255,0,0), name="RedBird", x=100, y=screenHeight*.6,width=100, height=100)
+multiplayerButton = Button(MutiplayerToggle,text="Multiplayer Toggle",color=(0,0,0),clickColor=(0,0,0),hoverColor=(0,0,0),normalColor=(0,0,0),x=150,y=screenHeight*.7, width=300, height=50)
 startUI.append(yellowBirdButton)
 startUI.append(blueBirdButton)
 startUI.append(redBirdButton)
+startUI.append(multiplayerButton)
 
 loginUI: list[ObjectEntety] = []
 passwordInput = TextInputBox(name="PasswordInput",x=screenWidth//2, y=screenHeight*.75, width=200, height=50, color=(0,0,0), decorText="Password: ",textColor=(0,0,0), inactiveColor=(255,255,255), activeColor=(240,240,240))
@@ -367,9 +463,9 @@ if rememberMe:
 globalInfo = GlobalInfo()
 
 packet = Packet()
-packet.SetInfo(birdColor,0,bird.GetPosition(),[],scoreManager.score, username,1,0,False)
+#packet.SetInfo(birdColor,0,bird.GetPosition(),False,[],scoreManager.score, username,1,0,False)
 network = Network()
-network.send(packet)
+#network.send(packet)
 
 prevPipeInfo = []
 pipeFrame = 0
@@ -456,16 +552,22 @@ while running:
         deathScreenShown = True
         startScreenShown = False
     
-    userNameText = font.render(username, True, "white")
+    usernameTextInput = username
+    
+    if inMultiplayer:
+        usernameTextInput = f"{username} - {curRank}"
+        
+    userNameText = font.render(usernameTextInput, True, "white")
     namePos = bird.GetPosition()
     namePos = (int(namePos[0] - bird.width//2), int(namePos[1]) + 40)
     screen.blit(userNameText, namePos)
     if startScreenShown:
         startText = font.render("Flappy Bird", True, "white")
         rememberText = font.render("Yes" if rememberMe else "No", True, "white")
+        multiplayerText = font.render("Yes" if inMultiplayer else "No", True, "black")
         screen.blit(startText, (screenWidth // 2, screenHeight * .35))
         screen.blit(rememberText, (screenWidth *.6, screenHeight * .55))
-
+        screen.blit(multiplayerText, (200, screenHeight * .75))
     elif deathScreenShown:
         deathText = font.render((f"New Best: {scoreManager.bestScore}!" if scoreManager.beatBestScore else f"Best Score: {scoreManager.bestScore}\nTry Again?"), True, "white")
         screen.blit(deathText, (screenWidth // 2, screenHeight * .4))
@@ -503,6 +605,7 @@ if account is not None:
     "RememberAccount": rememberMe,
     "BirdColor":birdColor
     }
+    
     with open('SaveFile.json', "w", encoding='utf-8') as file:
         print(accountInfo)
         json.dump(accountInfo, file, indent=4)

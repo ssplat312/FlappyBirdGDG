@@ -5,12 +5,23 @@ from packets import Packet
 from GlobalInfo import GlobalInfo
 class Network:
     def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client = None#socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = GlobalInfo.server
         self.port = GlobalInfo.port
         self.addr = (self.server, self.port)
+        self.packet = None#self.connect()
+        self.prevPackets = []
+        
+    def SetUpNetwork(self):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.packet = self.connect()
         self.prevPackets = []
+        
+    def DisconnectNetwork(self):
+        dissconnectPacket = Packet()
+        dissconnectPacket.SetInfo(0,0,(0,0),False,[],0,"",0,0,False,True)
+        self.send(dissconnectPacket)
+        self.client.detach()
         
     def getPacket(self):
         return self.packet
